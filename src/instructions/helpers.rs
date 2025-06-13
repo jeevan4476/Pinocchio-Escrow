@@ -26,6 +26,7 @@ pub trait AssociatedTokenAccountCheck {
         account: &AccountInfo,
         authority: &AccountInfo,
         mint: &AccountInfo,
+        token_program: &AccountInfo,
     ) -> Result<(), ProgramError>;
 }
 pub struct SignerAccount;
@@ -89,6 +90,7 @@ impl AssociatedTokenAccountCheck for AssociatedTokenAccount {
         account: &AccountInfo,
         authority: &AccountInfo,
         mint: &AccountInfo,
+        token_program: &AccountInfo,
     ) -> Result<(), ProgramError> {
         TokenAccount::check(account)?;
         if find_program_address(
@@ -149,7 +151,7 @@ impl AssociatedTokenAccountInit for AssociatedTokenAccount {
         system_program: &AccountInfo,
         token_program: &AccountInfo,
     ) -> ProgramResult {
-        match Self::check(account, payer, mint) {
+        match Self::check(account, payer, mint, token_program) {
             Ok(_) => Ok(()),
             Err(_) => Self::init(account, mint, payer, owner, system_program, token_program),
         }

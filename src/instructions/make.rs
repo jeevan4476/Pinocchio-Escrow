@@ -1,9 +1,6 @@
 use pinocchio::{
-    account_info::{self, AccountInfo},
-    instruction::Seed,
-    program_error::ProgramError,
-    pubkey::find_program_address,
-    ProgramResult,
+    account_info::AccountInfo, instruction::Seed, program_error::ProgramError,
+    pubkey::find_program_address, ProgramResult,
 };
 use pinocchio_token::instructions::Transfer;
 
@@ -36,7 +33,7 @@ impl<'a> TryFrom<&'a [AccountInfo]> for MakeAccounts<'a> {
         SignerAccount::check(maker)?;
         MintInterface::check(mint_a)?;
         MintInterface::check(mint_b)?;
-        AssociatedTokenAccount::check(maker_ata_a, maker, mint_a)?;
+        AssociatedTokenAccount::check(maker_ata_a, maker, mint_a, token_program)?;
 
         //Return the accounts
         Ok(Self {
