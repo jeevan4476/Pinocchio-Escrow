@@ -2,7 +2,7 @@ use pinocchio::{
     account_info::AccountInfo, entrypoint, program_error::ProgramError, pubkey::Pubkey,
     ProgramResult,
 };
-
+entrypoint!(process_instruction);
 pub mod instructions;
 pub use instructions::*;
 
@@ -14,7 +14,7 @@ pub const ID: Pubkey = [
     0x19, 0x92, 0xba, 0xe8, 0xaf, 0xd1, 0xcd, 0x07, 0x8e, 0xf8, 0xaf, 0x70, 0x47, 0xdc, 0x11, 0xf7,
 ];
 
-fn process_instructions(
+fn process_instruction(
     _program_id: &Pubkey,
     accounts: &[AccountInfo],
     instruction_data: &[u8],

@@ -5,7 +5,10 @@ use pinocchio::{
     pubkey::{create_program_address, find_program_address},
     ProgramResult,
 };
-use pinocchio_token::{instructions::Transfer, state::TokenAccount};
+use pinocchio_token::{
+    instructions::{CloseAccount, Transfer},
+    state::TokenAccount,
+};
 
 use crate::{helpers::*, Escrow};
 
@@ -41,8 +44,8 @@ impl<'a> TryFrom<&'a [AccountInfo]> for TakeAccounts<'a> {
         ProgramAccount::check(escrow)?;
         MintInterface::check(mint_a)?;
         MintInterface::check(mint_b)?;
-        AssociatedTokenAccount::check(taker_ata_b, taker, mint_b, token_program)?;
-        AssociatedTokenAccount::check(vault, escrow, mint_a, token_program)?;
+        AssociatedTokenAccount::check(taker_ata_b, taker, mint_b)?;
+        AssociatedTokenAccount::check(vault, escrow, mint_a)?;
 
         Ok(Self {
             taker,
@@ -130,6 +133,33 @@ impl<'a> Take<'a> {
 
         let signer = Signer::from(&escrow_seeds);
 
-        let amount = TokenAccount::amount(self.accounts.vault);
+        let vault_account = TokenAccount::from_account_info(self.accounts.vault)?;
+        let amount = vault_account.amount();
+
+        Transfer {
+            from: self.accounts.vault,
+            to: self.accounts.taker_ata_a,
+            authority: self.accounts.escrow,
+            amount,
+        }
+        .invoke_signed(&[signer.clone()])?;
+
+        CloseAccount {
+            account: self.accounts.vault,
+            destination: self.accounts.maker,
+            authority: self.accounts.escrow,
+        }
+        .invoke_signed(&[signer.clone()])?;
+
+        Transfer {
+            from: self.accounts.taker_ata_b,
+            to: self.accounts.maker_ata_b,
+            authority: self.accounts.taker,
+            amount: escrow.recieve,
+        }
+        .invoke()?;
+        drop(data);
+        ProgramAccount::close(self.accounts.escrow, self.accounts.taker)?;
+        Ok(())
     }
 }

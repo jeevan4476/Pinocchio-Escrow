@@ -33,7 +33,7 @@ impl<'a> TryFrom<&'a [AccountInfo]> for MakeAccounts<'a> {
         SignerAccount::check(maker)?;
         MintInterface::check(mint_a)?;
         MintInterface::check(mint_b)?;
-        AssociatedTokenAccount::check(maker_ata_a, maker, mint_a, token_program)?;
+        AssociatedTokenAccount::check(maker_ata_a, maker, mint_a)?;
 
         //Return the accounts
         Ok(Self {
