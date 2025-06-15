@@ -1,10 +1,9 @@
+use crate::{helpers::*, Escrow};
 use pinocchio::{
     account_info::AccountInfo, instruction::Seed, program_error::ProgramError,
     pubkey::find_program_address, ProgramResult,
 };
 use pinocchio_token::instructions::Transfer;
-
-use crate::{helpers::*, Escrow};
 ///initialize the escrow and store all the deal terms
 /// create the vault(ATA for mint_a owned by the escrow)
 /// move the maker's token a to the vault with a CPI  to the spl token program
@@ -28,12 +27,11 @@ impl<'a> TryFrom<&'a [AccountInfo]> for MakeAccounts<'a> {
         else {
             return Err(ProgramError::NotEnoughAccountKeys);
         };
-
-        //Basic Accounts Checks
+        // //Basic Accounts Checks
         SignerAccount::check(maker)?;
         MintInterface::check(mint_a)?;
         MintInterface::check(mint_b)?;
-        AssociatedTokenAccount::check(maker_ata_a, maker, mint_a)?;
+        AssociatedTokenAccount::check(maker_ata_a, maker, mint_a, token_program)?;
 
         //Return the accounts
         Ok(Self {
@@ -59,10 +57,9 @@ impl<'a> TryFrom<&'a [u8]> for MakeInstructionData {
     type Error = ProgramError;
 
     fn try_from(data: &'a [u8]) -> Result<Self, Self::Error> {
-        if data.len() != size_of::<u8>() * 3 {
+        if data.len() != size_of::<u64>() * 3 {
             return Err(ProgramError::InvalidInstructionData);
         }
-
         let seed = u64::from_le_bytes(data[0..8].try_into().unwrap());
         let recieve = u64::from_le_bytes(data[8..16].try_into().unwrap());
         let amount = u64::from_le_bytes(data[16..24].try_into().unwrap());
@@ -90,7 +87,6 @@ impl<'a> TryFrom<(&'a [u8], &'a [AccountInfo])> for Make<'a> {
     fn try_from((data, accounts): (&'a [u8], &'a [AccountInfo])) -> Result<Self, Self::Error> {
         let accounts = MakeAccounts::try_from(accounts)?;
         let instruction_data = MakeInstructionData::try_from(data)?;
-
         let (_, bump) = find_program_address(
             &[
                 b"escrow",

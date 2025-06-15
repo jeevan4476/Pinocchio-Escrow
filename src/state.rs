@@ -1,9 +1,5 @@
 use core::mem::size_of;
-use pinocchio::{
-    account_info::{AccountInfo, Ref},
-    program_error::ProgramError,
-    pubkey::Pubkey,
-};
+use pinocchio::{program_error::ProgramError, pubkey::Pubkey};
 
 #[repr(C)]
 pub struct Escrow {
